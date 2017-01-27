@@ -137,17 +137,18 @@ bool Seatalk::nmea2message(NMEABase* nmea, byte* message) {
   // Check if the sentence is seatalk over nmea
   if (strcmp("STALK",nmea->term(0))==0) {
     // Check the target
-    //if (strcmp(_label,nmea->term(1))==0 || strcmp("",nmea->term(1))==0) {
+    
+    if (strcmp(_label,nmea->term(nmea->terms()-1))==0 || strcmp("",nmea->term(nmea->terms()-1))==0) {
       // for each term from the third to the last minus one...
       
-      for (int i=1;i<nmea->terms();i++) {
+      for (int i=1;i<nmea->terms()-1;i++) {
         // Get the byte and set the message
         sscanf(nmea->term(i),"%02X",&message[i-1]);
       }
       // Return with a valid message
       return true;
       
-    //}
+    }
   }
   // No fat for cats
   return false;
@@ -160,7 +161,7 @@ void Seatalk::message2nmea(byte* message, char *sentenceOut) {
   int c;
   
   // Initialize the string builder
-  strcpy(sentenceOut,"$STALK");
+  strcpy(sentenceOut,"$STALK,");
   
 
   // Add the label
@@ -173,9 +174,11 @@ void Seatalk::message2nmea(byte* message, char *sentenceOut) {
   
   // For each byte in the messagge, add a term
   for (int i=0;i<len;i++) {
-    sprintf(buf,",%02X",message[i] & 0xff);
+    sprintf(buf,"%02X,",message[i] & 0xff);
     strcat(sentenceOut,buf);
   }
+  // Add the label
+  strcat(sentenceOut,_label);
   strcat(sentenceOut,"*");
 
   // Add the checksum
